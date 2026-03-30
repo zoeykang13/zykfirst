@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="1st"/>
+<meta name="theme-color" content="#2563eb"/>
+<title>First of the Month</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #f8fafd;
+    --surface: #ffffff;
+    --surface-hover: #f0f5fb;
+    --border: #dce6f0;
+    --border-light: #eaf1f8;
+    --text: #1a2332;
+    --text-sub: #5a7290;
+    --text-muted: #93aec6;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-light: #eff6ff;
+    --accent-border: #bfdbfe;
+    --pill-bg: #eff6ff;
+    --pill-text: #2563eb;
+    --warn-bg: #fffbeb;
+    --warn-border: #fde68a;
+    --warn-text: #92400e;
+    --warn-pill: #fef3c7;
+    --done-text: #a0b8cf;
+    --red: #ef4444;
+    --green: #16a34a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-weight: 400;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 60px;
+  }
+
+  .page { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+
+  /* ── Header ── */
+  .header { padding: 40px 0 28px; }
+  .header-top {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 6px;
+  }
+  .wordmark {
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+  }
+  .month-nav { display: flex; align-items: center; gap: 4px; }
+  .nav-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); cursor: pointer; color: var(--text-sub);
+    transition: background 0.12s, color 0.12s, border-color 0.12s; font-size: 14px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-btn:hover:not(:disabled) { background: var(--accent-light); color: var(--accent); border-color: var(--accent-border); }
+  .nav-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+  .month-heading {
+    font-size: clamp(32px, 8vw, 44px); font-weight: 600;
+    letter-spacing: -0.03em; color: var(--text); line-height: 1.05;
+  }
+  .month-heading .year {
+    font-weight: 300; color: var(--text-muted); margin-left: 6px; font-size: 0.72em;
+  }
+
+  /* ── Progress ── */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; margin: 20px 0 28px; }
+  .progress-track { flex: 1; height: 3px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.45s cubic-bezier(.4,0,.2,1); }
+  .progress-pill {
+    font-size: 11px; font-weight: 500; color: var(--accent);
+    background: var(--pill-bg); border-radius: 99px; padding: 3px 9px;
+    white-space: nowrap; min-width: 48px; text-align: center;
+  }
+
+  /* ── Outstanding banner ── */
+  #outstanding-banner {
+    background: var(--warn-bg); border: 1px solid var(--warn-border);
+    border-radius: var(--radius); padding: 14px 16px; margin-bottom: 24px; display: none;
+  }
+  .banner-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--warn-text); margin-bottom: 10px;
+  }
+  .banner-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .banner-chip {
+    font-family: inherit; font-size: 12px; font-weight: 500;
+    background: var(--warn-pill); border: 1px solid var(--warn-border);
+    border-radius: 99px; padding: 4px 11px; cursor: pointer; color: var(--warn-text);
+    transition: background 0.12s; -webkit-tap-highlight-color: transparent;
+  }
+  .banner-chip:hover { background: var(--warn-border); }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; margin-bottom: 12px;
+  }
+  .section-header { display: flex; align-items: center; padding: 14px 16px 10px; }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+
+  /* ── Checklist rows ── */
+  .checklist { list-style: none; }
+  .c-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-top: 1px solid var(--border-light);
+    transition: background 0.1s; -webkit-tap-highlight-color: transparent;
+  }
+  .c-item:first-child { border-top: none; }
+  .c-item:hover { background: var(--surface-hover); }
+  .c-item.is-done { background: transparent; }
+
+  /* checkbox */
+  .cb { position: relative; width: 20px; height: 20px; flex-shrink: 0; }
+  .cb input {
+    position: absolute; opacity: 0; width: 100%; height: 100%;
+    cursor: pointer; margin: 0; z-index: 1;
+  }
+  .cb-visual {
+    width: 20px; height: 20px; border: 1.5px solid var(--border);
+    border-radius: 6px; background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; pointer-events: none;
+  }
+  .cb input:checked ~ .cb-visual { background: var(--accent); border-color: var(--accent); }
+  .cb-tick { display: none; }
+  .cb-tick path { stroke: #fff; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .cb input:checked ~ .cb-visual .cb-tick { display: block; }
+
+  .c-label {
+    flex: 1; font-size: 14px; font-weight: 400; color: var(--text);
+    line-height: 1.4; transition: color 0.15s; min-width: 0;
+  }
+  .c-item.is-done .c-label {
+    color: var(--done-text); text-decoration: line-through;
+    text-decoration-color: var(--border);
+  }
+
+  .c-edit-input {
+    flex: 1; font-family: inherit; font-size: 14px; font-weight: 400;
+    background: transparent; border: none; border-bottom: 1.5px solid var(--accent);
+    color: var(--text); outline: none; padding: 1px 0; min-width: 0;
+    caret-color: var(--accent);
+  }
+
+  .c-actions {
+    display: flex; gap: 2px; flex-shrink: 0;
+    opacity: 0; transition: opacity 0.12s;
+  }
+  @media (hover: none) { .c-actions { opacity: 1; } }
+  .c-item:hover .c-actions, .c-actions.active { opacity: 1; }
+
+  .row-btn {
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    background: none; border: none; border-radius: 6px; cursor: pointer;
+    color: var(--text-muted); font-size: 14px; transition: background 0.1s, color 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .row-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .row-btn.del:hover { color: var(--red); }
+  .row-btn.confirm { color: var(--green); }
+  .row-btn.confirm:hover { color: var(--green); background: #f0fdf4; }
+
+  /* ── Add row ── */
+  .add-row {
+    display: flex; gap: 8px; padding: 10px 16px 14px;
+    border-top: 1px solid var(--border-light);
+  }
+  .add-field {
+    flex: 1; font-family: inherit; font-size: 13.5px; font-weight: 400;
+    background: var(--surface-hover); border: 1px solid transparent;
+    border-radius: var(--radius-sm); padding: 8px 12px; color: var(--text);
+    outline: none; transition: border-color 0.15s, background 0.15s; min-width: 0;
+  }
+  .add-field:focus { background: var(--surface); border-color: var(--accent-border); box-shadow: 0 0 0 3px rgba(37,99,235,0.08); }
+  .add-field::placeholder { color: var(--text-muted); }
+  .add-btn {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    background: var(--accent); color: #fff; border: none;
+    border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer;
+    transition: background 0.12s; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .add-btn:hover { background: var(--accent-hover); }
+  .add-btn:active { transform: scale(0.97); }
+
+  .empty-row {
+    padding: 14px 16px; font-size: 13px; color: var(--text-muted);
+    border-top: 1px solid var(--border-light);
+  }
+  .empty-row:first-child { border-top: none; }
+
+  /* ── Modal ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px; z-index: 100;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-backdrop.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); width: 100%; max-width: 380px;
+    padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    transform: translateY(10px); transition: transform 0.2s;
+  }
+  .modal-backdrop.open .modal { transform: translateY(0); }
+  .modal-icon {
+    width: 40px; height: 40px; border-radius: 10px; background: #f0fdf4;
+    display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+  }
+  .modal-title {
+    font-size: 16px; font-weight: 600; color: var(--text);
+    margin-bottom: 8px; letter-spacing: -0.01em;
+  }
+  .modal-body {
+    font-size: 13.5px; color: var(--text-sub); line-height: 1.6; margin-bottom: 22px;
+  }
+  .modal-body strong { color: var(--text); font-weight: 500; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .modal-btn {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    border-radius: var(--radius-sm); padding: 8px 16px; cursor: pointer;
+    border: 1px solid var(--border); transition: background 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .modal-btn.secondary { background: var(--surface); color: var(--text-sub); }
+  .modal-btn.secondary:hover { background: var(--surface-hover); }
+  .modal-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .modal-btn.primary:hover { background: var(--accent-hover); }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .c-item { animation: fadeSlide 0.18s ease; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="header">
+    <div class="header-top">
+      <span class="wordmark">First of the Month</span>
+      <div class="month-nav">
+        <button class="nav-btn" id="prev-btn">&#8592;</button>
+        <button class="nav-btn" id="next-btn">&#8594;</button>
+      </div>
+    </div>
+    <h1 class="month-heading" id="month-display"></h1>
+  </header>
+
+  <div id="outstanding-banner">
+    <div class="banner-label">Outstanding</div>
+    <div class="banner-chips" id="banner-chips"></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-pill" id="progress-pill">0 / 0</div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="section-header"><span class="section-label">Monthly</span></div>
+    <ul class="checklist" id="checklist"></ul>
+    <div class="add-row">
+      <input class="add-field" id="new-task-input" type="text" placeholder="Add recurring task…"/>
+      <button class="add-btn" id="add-task-btn">Add</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-header"><span class="section-label">Ongoing Projects</span></div>
+    <ul class="checklist" id="ongoing-list"></ul>
+    <div class="add-row">
+      <input class="add-field" id="new-project-input" type="text" placeholder="Add project…"/>
+      <button class="add-btn" id="add-project-btn">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Archive confirmation modal -->
+<div class="modal-backdrop" id="archive-modal">
+  <div class="modal">
+    <div class="modal-icon" style="background:#eff6ff;">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="10" cy="10" r="8"/>
+        <path d="M6.5 10l2.5 2.5 4.5-4.5"/>
+      </svg>
+    </div>
+    <div class="modal-title" id="modal-title">Archive this month?</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" id="modal-cancel">Keep it</button>
+      <button class="modal-btn primary" id="modal-confirm">Archive</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────
+const FIRST_MONTH = { year: 2025, month: 7 }; // Aug 2025
+const DEFAULT_TASKS = [
+  "2025 Expenses","Charlie Finances","Charlie Pictures","Z&C Log",
+  "Change Wallet","Amex $10 Uber Cash","Amex $10 Grubhub",
+  "United $5 Rideshare","Chase $10 Lyft","Update Letterboxd"
+];
+const DEFAULT_PROJECTS = [
+  {id:"p1",name:"Post Portugal pics",completed:false},
+  {id:"p2",name:"Post Chicago pics",completed:false},
+  {id:"p3",name:"Post pics from Canada with Mom",completed:false},
+  {id:"p4",name:"Post Korea/Japan pics",completed:false}
+];
+const OUTSTANDING_INIT = [[2025,7],[2025,9],[2025,10],[2025,11],[2026,0],[2026,1]];
+const MONTHS = ["January","February","March","April","May","June",
+                "July","August","September","October","November","December"];
+
+let curY, curM;
+let pendingArchive = null;
+
+// ── Init ──────────────────────────────────────────────────
+function init() {
+  const n = getNow();
+  curY = n.y; curM = n.m;
+  // If current month is archived, walk back to the nearest valid one
+  if (isArchived(curY, curM)) {
+    const valid = getValidMonths();
+    if (valid.length) { curY = valid[valid.length-1][0]; curM = valid[valid.length-1][1]; }
+  }
+  registerSW();
+  render();
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function getNow() { const d = new Date(); return { y: d.getFullYear(), m: d.getMonth() }; }
+function monthIdx(y, m) { return y * 12 + m; }
+
+function isArchived(y, m) {
+  return loadArchived().some(([ay,am]) => ay===y && am===m);
+}
+
+function getValidMonths() {
+  const n = getNow();
+  const result = [];
+  let y = FIRST_MONTH.year, m = FIRST_MONTH.month;
+  while (monthIdx(y,m) <= monthIdx(n.y,n.m)) {
+    if (!isArchived(y,m)) result.push([y,m]);
+    m++; if (m>11){m=0;y++;}
+  }
+  return result;
+}
+
+function prevValid(y, m) {
+  const v = getValidMonths();
+  const i = v.findIndex(([vy,vm]) => vy===y && vm===m);
+  return i > 0 ? v[i-1] : null;
+}
+function nextValid(y, m) {
+  const v = getValidMonths();
+  const i = v.findIndex(([vy,vm]) => vy===y && vm===m);
+  return (i !== -1 && i < v.length-1) ? v[i+1] : null;
+}
+
+// ── Storage ───────────────────────────────────────────────
+const K = {
+  tasks:    'fotm_tasks',
+  projects: 'fotm_projects',
+  archived: 'fotm_archived',
+  checks:   (y,m) => `fotm_checks_${y}_${String(m).padStart(2,'0')}`
+};
+function loadTasks()       { try{const s=localStorage.getItem(K.tasks);    return s?JSON.parse(s):[...DEFAULT_TASKS];}catch{return[...DEFAULT_TASKS];} }
+function saveTasks(v)      { localStorage.setItem(K.tasks,JSON.stringify(v)); }
+function loadChecks(y,m)   { try{const s=localStorage.getItem(K.checks(y,m));return s?JSON.parse(s):{};}catch{return{};} }
+function saveChecks(y,m,v) { localStorage.setItem(K.checks(y,m),JSON.stringify(v)); }
+function loadProjects()    { try{const s=localStorage.getItem(K.projects);return s?JSON.parse(s):DEFAULT_PROJECTS.map(p=>({...p}));}catch{return DEFAULT_PROJECTS.map(p=>({...p}));} }
+function saveProjects(v)   { localStorage.setItem(K.projects,JSON.stringify(v)); }
+function loadArchived()    { try{const s=localStorage.getItem(K.archived);return s?JSON.parse(s):[];}catch{return[];} }
+function saveArchived(v)   { localStorage.setItem(K.archived,JSON.stringify(v)); }
+function archiveMonth(y,m) { const a=loadArchived();a.push([y,m]);saveArchived(a); }
+
+// ── Render ────────────────────────────────────────────────
+function render() { renderHeader(); renderBanner(); renderChecklist(); renderOngoing(); }
+
+function renderHeader() {
+  document.getElementById('month-display').innerHTML =
+    `${MONTHS[curM]}<span class="year">${curY}</span>`;
+  document.getElementById('prev-btn').disabled = !prevValid(curY,curM);
+  document.getElementById('next-btn').disabled = !nextValid(curY,curM);
+}
+
+function isMonthComplete(y,m) {
+  const tasks=loadTasks(), checks=loadChecks(y,m);
+  return tasks.length>0 && tasks.every(t=>checks[t]);
+}
+
+function renderBanner() {
+  const banner=document.getElementById('outstanding-banner');
+  const chips =document.getElementById('banner-chips');
+  chips.innerHTML='';
+  // Outstanding = initial list, minus archived
+  const visible=OUTSTANDING_INIT.filter(([y,m])=>!isArchived(y,m));
+  const pending=visible.filter(([y,m])=>!isMonthComplete(y,m));
+  if(pending.length===0){banner.style.display='none';return;}
+  banner.style.display='block';
+  visible.forEach(([y,m])=>{
+    const done=isMonthComplete(y,m);
+    const btn=document.createElement('button');
+    btn.className='banner-chip'+(done?' cleared':'');
+    btn.textContent=`${MONTHS[m].slice(0,3)} ${y}`;
+    if(!done){
+      btn.addEventListener('click',()=>{curY=y;curM=m;render();scrollTo({top:0,behavior:'smooth'});});
+    }
+    chips.appendChild(btn);
+  });
+}
+
+function renderChecklist() {
+  const tasks =loadTasks();
+  const checks=loadChecks(curY,curM);
+  const list  =document.getElementById('checklist');
+  list.innerHTML='';
+  const sorted=[...tasks].sort((a,b)=>checks[a]===checks[b]?0:checks[a]?1:-1);
+  sorted.forEach(task=>{
+    const li=buildItem({
+      label:task, checked:!!checks[task],
+      onCheck: val=>{
+        const c=loadChecks(curY,curM); c[task]=val; saveChecks(curY,curM,c);
+        render();
+        // Only prompt archive for past months (not current)
+        const n=getNow();
+        if(val && monthIdx(curY,curM)<monthIdx(n.y,n.m) && isMonthComplete(curY,curM)){
+          promptArchive(curY,curM);
+        }
+      },
+      onEdit:  (li,old)=>startEditTask(li,old),
+      onDelete:()=>{
+        if(!confirm(`Remove "${task}" from recurring tasks?`))return;
+        saveTasks(loadTasks().filter(x=>x!==task)); render();
+      }
+    });
+    list.appendChild(li);
+  });
+  const total=tasks.length, done=tasks.filter(t=>checks[t]).length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pill').textContent=`${done} / ${total}`;
+}
+
+function renderOngoing() {
+  const projects=loadProjects();
+  const list=document.getElementById('ongoing-list');
+  list.innerHTML='';
+  if(projects.length===0){
+    const li=document.createElement('li');li.className='empty-row';
+    li.textContent='No ongoing projects yet.';list.appendChild(li);return;
+  }
+  const sorted=[...projects].sort((a,b)=>a.completed===b.completed?0:a.completed?1:-1);
+  sorted.forEach(project=>{
+    const li=buildItem({
+      label:project.name, checked:project.completed,
+      onCheck:val=>{
+        const ps=loadProjects(),p=ps.find(x=>x.id===project.id);
+        if(p){p.completed=val;saveProjects(ps);} renderOngoing();
+      },
+      onEdit:  (li)=>startEditProject(li,project),
+      onDelete:()=>{
+        if(!confirm(`Remove "${project.name}"?`))return;
+        saveProjects(loadProjects().filter(x=>x.id!==project.id)); renderOngoing();
+      }
+    });
+    list.appendChild(li);
+  });
+}
+
+// ── Archive modal ─────────────────────────────────────────
+function promptArchive(y,m) {
+  pendingArchive={y,m};
+  const label=`${MONTHS[m]} ${y}`;
+  document.getElementById('modal-title').textContent=`Archive ${label}?`;
+  document.getElementById('modal-body').innerHTML=
+    `<strong>${label}</strong> is fully complete — every task is checked off. `+
+    `Archive it to remove it from your navigation. You can't undo this.`;
+  document.getElementById('archive-modal').classList.add('open');
+}
+
+document.getElementById('modal-cancel').addEventListener('click',()=>{
+  document.getElementById('archive-modal').classList.remove('open');
+  pendingArchive=null;
+});
+
+document.getElementById('modal-confirm').addEventListener('click',()=>{
+  document.getElementById('archive-modal').classList.remove('open');
+  if(!pendingArchive)return;
+  const{y,m}=pendingArchive; pendingArchive=null;
+  archiveMonth(y,m);
+  // Navigate to the nearest remaining valid month
+  const next=nextValid(y,m)||prevValid(y,m);
+  if(next){curY=next[0];curM=next[1];}
+  else{const n=getNow();curY=n.y;curM=n.m;}
+  render();
+});
+
+document.getElementById('archive-modal').addEventListener('click',e=>{
+  if(e.target===e.currentTarget){
+    e.currentTarget.classList.remove('open');
+    pendingArchive=null;
+  }
+});
+
+// ── Item builder ──────────────────────────────────────────
+function buildItem({label,checked,onCheck,onEdit,onDelete}) {
+  const li=document.createElement('li');
+  li.className='c-item'+(checked?' is-done':'');
+  li.innerHTML=`
+    <label class="cb">
+      <input type="checkbox" ${checked?'checked':''}/>
+      <span class="cb-visual">
+        <svg class="cb-tick" width="11" height="11" viewBox="0 0 11 11">
+          <path d="M1.5 5.5l2.8 2.8 5-5"/>
+        </svg>
+      </span>
+    </label>
+    <span class="c-label">${esc(label)}</span>
+    <div class="c-actions">
+      <button class="row-btn edit" title="Edit">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/></svg>
+      </button>
+      <button class="row-btn del" title="Delete">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l8 8M11 3l-8 8"/></svg>
+      </button>
+    </div>`;
+  li.querySelector('input').addEventListener('change',e=>onCheck(e.target.checked));
+  li.querySelector('.edit').addEventListener('click',()=>onEdit(li,label));
+  li.querySelector('.del').addEventListener('click',onDelete);
+  return li;
+}
+
+// ── Inline edit ───────────────────────────────────────────
+function startEditTask(li,oldName){
+  const labelEl=li.querySelector('.c-label');
+  const actions=li.querySelector('.c-actions');
+  const input=document.createElement('input');
+  input.className='c-edit-input'; input.value=oldName;
+  labelEl.replaceWith(input); actions.classList.add('active');
+  actions.querySelector('.edit').innerHTML=`<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3.5 3.5L12 3"/></svg>`;
+  actions.querySelector('.edit').classList.add('confirm');
+  input.focus(); input.select();
+  const save=()=>{
+    const n=input.value.trim(); if(!n){input.focus();return;}
+    const tasks=loadTasks(),idx=tasks.indexOf(oldName);
+    if(idx!==-1)tasks[idx]=n; saveTasks(tasks);
+    const c=loadChecks(curY,curM);
+    if(c[oldName]!==undefined){c[n]=c[oldName];delete c[oldName];saveChecks(curY,curM,c);}
+    render();
+  };
+  actions.querySelector('.edit').onclick=save;
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')render();});
+}
+
+function startEditProject(li,project){
+  const labelEl=li.querySelector('.c-label');
+  const actions=li.querySelector('.c-actions');
+  const input=document.createElement('input');
+  input.className='c-edit-input'; input.value=project.name;
+  labelEl.replaceWith(input); actions.classList.add('active');
+  actions.querySelector('.edit').innerHTML=`<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l3.5 3.5L12 3"/></svg>`;
+  actions.querySelector('.edit').classList.add('confirm');
+  input.focus(); input.select();
+  const save=()=>{
+    const n=input.value.trim(); if(!n){input.focus();return;}
+    const ps=loadProjects(),p=ps.find(x=>x.id===project.id);
+    if(p){p.name=n;saveProjects(ps);} renderOngoing();
+  };
+  actions.querySelector('.edit').onclick=save;
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')save();if(e.key==='Escape')renderOngoing();});
+}
+
+// ── Add ───────────────────────────────────────────────────
+document.getElementById('add-task-btn').addEventListener('click',addTask);
+document.getElementById('new-task-input').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
+function addTask(){
+  const el=document.getElementById('new-task-input');
+  const v=el.value.trim(); if(!v)return;
+  const tasks=loadTasks(); if(tasks.includes(v)){el.value='';return;}
+  tasks.push(v); saveTasks(tasks); el.value=''; render();
+}
+
+document.getElementById('add-project-btn').addEventListener('click',addProject);
+document.getElementById('new-project-input').addEventListener('keydown',e=>{if(e.key==='Enter')addProject();});
+function addProject(){
+  const el=document.getElementById('new-project-input');
+  const v=el.value.trim(); if(!v)return;
+  const ps=loadProjects();
+  ps.push({id:'p'+Date.now(),name:v,completed:false});
+  saveProjects(ps); el.value=''; renderOngoing();
+}
+
+// ── Navigation ────────────────────────────────────────────
+document.getElementById('prev-btn').addEventListener('click',()=>{
+  const p=prevValid(curY,curM); if(p){curY=p[0];curM=p[1];render();}
+});
+document.getElementById('next-btn').addEventListener('click',()=>{
+  const n=nextValid(curY,curM); if(n){curY=n[0];curM=n[1];render();}
+});
+
+// ── PWA ───────────────────────────────────────────────────
+function registerSW(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+// ── Util ──────────────────────────────────────────────────
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
+</script>
+</body>
+</html>
