@@ -1,6 +1,6 @@
-const CACHE = 'fotm-v1';
+const CACHE = 'fotm-v2';
 const ASSETS = [
-  './checklist.html',
+  './index.html',
   './manifest.json'
 ];
 
